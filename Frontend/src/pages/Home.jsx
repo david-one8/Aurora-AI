@@ -155,9 +155,11 @@ return (
     <main className="chat-main" role="main">
       {messages.length === 0 && (
         <div className="chat-welcome" aria-hidden="true">
-          <div className="chip">Early Preview</div>
-          <h1>ChatGPT Clone</h1>
-          <p>Ask anything. Paste text, brainstorm ideas, or get quick explanations. Your chats stay in the sidebar so you can pick up where you left off.</p>
+          <div className="chip">👋 Hello, Dreamer!</div>
+          <h1>Aurora AI</h1>
+          <p>
+            Ignite your ideas with Aurora AI – your smart, real-time chat companion. Start a fresh conversation or pick up where you left off. Every message is a step toward brilliance. Let’s create something amazing together!
+          </p>
         </div>
       )}
       <ChatMessages messages={messages} isSending={isSending} />
