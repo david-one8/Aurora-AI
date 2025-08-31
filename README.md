@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌟 Aurora AI
+# 🤖 Aurora AI
 
 <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=600&size=28&pause=1000&color=6366F1&center=true&vCenter=true&width=600&lines=Intelligent+AI+Chat+Application;Real-time+Messaging+Platform" alt="Typing SVG" />
 
@@ -202,7 +202,7 @@ cd Frontend && npm run dev
 ## 📁 Project Structure
 
 ```
-🌟 Aurora-AI/
+🤖 Aurora-AI/
 ├── 🔧 Backend/
 │   ├── 📂 src/
 │   │   ├── 🎮 controllers/     # Request handlers
@@ -312,7 +312,9 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 
 ---
 
-**Made with ❤️ by [David Fule](https://github.com/david-one8)**
+<div align="center">
+
+**Made with ❤️ by David Fule**
 
 <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=16&pause=1000&color=6366F1&center=true&vCenter=true&width=400&lines=Thanks+for+visiting!;Star+⭐+if+you+like+it!;Happy+Coding!+🚀" alt="Footer Typing SVG" />
 
