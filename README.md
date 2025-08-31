@@ -17,7 +17,7 @@
 
 ## 🎯 Overview
 
-Aurora AI is a cutting-edge full-stack chat application that combines the power of Google's Gemini AI with real-time messaging capabilities. Built with modern technologies and designed for seamless user experience across all devices.
+Aurora AI is a cutting-edge MERN-stack chat application that combines the power of Google's Gemini AI with real-time messaging capabilities. Built with modern technologies and designed for seamless user experience across all devices.
 
 ## 🆚 What Makes Aurora AI Different?
 
@@ -288,7 +288,7 @@ git push origin feature/amazing-feature
 <img src="https://github.com/david-one8.png" width="100" height="100" style="border-radius: 50%;" alt="David's Avatar"/>
 
 ### **David Fule** 
-*Full Stack Developer & AI Enthusiast*
+*MERN Stack Developer & AI Enthusiast*
 
 [![GitHub](https://img.shields.io/badge/GitHub-david--one8-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/david-one8)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/david-one8)
