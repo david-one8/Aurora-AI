@@ -171,10 +171,12 @@ cd ../Frontend && npm install
 
 Create `.env` in the Backend directory:
 
-```env
-# 🗄️ Database
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/Aurora
+**Do not use production credentials or sensitive keys in your `.env` file for local development.**  
+For local testing, use the default localhost connection string:
 
+```env
+MONGO_URI=mongodb://localhost:27017/
+```
 # 🔐 Security
 JWT_SECRET=your_super_secret_jwt_key_here
 
