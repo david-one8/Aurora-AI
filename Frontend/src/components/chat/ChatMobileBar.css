@@ -25,6 +25,12 @@
     pointer-events: none;
 }
 
+.chat-mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .chat-icon-btn {
     background: #0d0d0d;
     border: 1px solid #1e1e1e;
@@ -45,6 +51,10 @@
     color: #ffffff;
 }
 
+.chat-icon-btn.subtle {
+    color: #bfbfbf;
+}
+
 /* Very small widths: reduce horizontal padding to avoid wrapping/overflow */
 @media (max-width:480px) {
     .chat-mobile-bar {
@@ -54,6 +64,10 @@
 
     .chat-icon-btn {
         padding: 8px 10px;
+    }
+
+    .chat-mobile-actions {
+        gap: 6px;
     }
 
     .chat-app-title {
