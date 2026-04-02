@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { api, getErrorMessage } from '../../lib/api.js';
 
 const AuthRoute = ({ children, mode }) => {
+  const location = useLocation();
+  const routeKey = useMemo(() => `${mode}:${location.pathname}`, [location.pathname, mode]);
   const [state, setState] = useState({
+    routeKey,
     loading: true,
     authenticated: false,
     errorMessage: '',
@@ -12,15 +15,33 @@ const AuthRoute = ({ children, mode }) => {
   useEffect(() => {
     let isMounted = true;
 
+    setState((current) => ({
+      ...current,
+      routeKey,
+      loading: true,
+      errorMessage: '',
+    }));
+
     async function checkSession() {
       try {
-        await api.get('/api/auth/session');
+        const response = await api.get('/api/auth/session');
 
         if (!isMounted) {
           return;
         }
 
+        if (!response.data?.authenticated) {
+          setState({
+            routeKey,
+            loading: false,
+            authenticated: false,
+            errorMessage: '',
+          });
+          return;
+        }
+
         setState({
+          routeKey,
           loading: false,
           authenticated: true,
           errorMessage: '',
@@ -30,16 +51,8 @@ const AuthRoute = ({ children, mode }) => {
           return;
         }
 
-        if (error?.response?.status === 401) {
-          setState({
-            loading: false,
-            authenticated: false,
-            errorMessage: '',
-          });
-          return;
-        }
-
         setState({
+          routeKey,
           loading: false,
           authenticated: false,
           errorMessage: getErrorMessage(error, 'Unable to verify your session right now.'),
@@ -52,9 +65,9 @@ const AuthRoute = ({ children, mode }) => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [routeKey]);
 
-  if (state.loading) {
+  if (state.routeKey !== routeKey || state.loading) {
     return (
       <div className="auth-shell">
         <div className="auth-card" role="status" aria-live="polite">
