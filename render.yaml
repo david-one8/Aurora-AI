@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: aurora-ai-backend
+    runtime: node
+    plan: free
+    rootDir: Backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_CHAT_MODEL
+        value: gemini-2.5-flash
+      - key: PINECONE_API_KEY
+        sync: false

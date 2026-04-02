@@ -8,9 +8,16 @@ const {
     getRetryAfterSeconds
 } = require('../middlewares/rate-limit.middleware');
 
+function parseAllowedOrigins(value) {
+    return (value || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+}
+
 function initSocketServer(httpServer) {
     const allowedOrigins = [
-        process.env.FRONTEND_URL,
+        ...parseAllowedOrigins(process.env.FRONTEND_URL),
         'http://localhost:5173',
         'http://127.0.0.1:5173',
         'http://localhost:3000',

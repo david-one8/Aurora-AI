@@ -201,6 +201,13 @@ cd Frontend && npm run dev
 
 </div>
 
+## 🚀 Deployment
+
+- Render: deploy the backend with the root [render.yaml](/E:/Aurora AI/render.yaml) Blueprint.
+- Vercel: deploy the `Frontend` directory as a Vite app and keep [Frontend/vercel.json](/E:/Aurora AI/Frontend/vercel.json) in place for SPA routing.
+- Render env vars: set `MONGO_URI`, `JWT_SECRET`, `GEMINI_API_KEY`, `PINECONE_API_KEY`, and `FRONTEND_URL` to your Vercel app URL.
+- Vercel env vars: set `VITE_API_BASE_URL` and `VITE_SOCKET_URL` to your Render backend URL, using [Frontend/.env.example](/E:/Aurora AI/Frontend/.env.example) as the template.
+
 ## 📁 Project Structure
 
 ```

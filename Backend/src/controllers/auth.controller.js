@@ -2,11 +2,15 @@ const userModel = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const authCookieOptions = {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production'
-};
+function getAuthCookieOptions() {
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    return {
+        httpOnly: true,
+        sameSite: isProduction ? 'none' : 'lax',
+        secure: isProduction
+    };
+}
 
 async function registerUser(req, res) {
     try {
@@ -34,7 +38,7 @@ async function registerUser(req, res) {
         });
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-        res.cookie('token', token, authCookieOptions);
+        res.cookie('token', token, getAuthCookieOptions());
 
         return res.status(201).json({
             message: 'User registered successfully',
@@ -70,7 +74,7 @@ async function loginUser(req, res) {
         }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-        res.cookie('token', token, authCookieOptions);
+        res.cookie('token', token, getAuthCookieOptions());
 
         return res.status(200).json({
             message: 'User logged in successfully',
@@ -86,7 +90,7 @@ async function loginUser(req, res) {
 }
 
 function logoutUser(req, res) {
-    res.clearCookie('token', authCookieOptions);
+    res.clearCookie('token', getAuthCookieOptions());
     return res.status(200).json({ message: 'User logged out successfully' });
 }
 
