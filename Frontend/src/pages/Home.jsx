@@ -12,10 +12,32 @@ import {
   selectChat,
   setChats,
   setInput,
+  resetChatState,
   sendingStarted,
   sendingFinished,
 } from '../store/chatSlice.js';
 import { api, getErrorMessage, SOCKET_URL } from '../lib/api.js';
+
+function mapServerMessage(message) {
+  const createdAt = message.createdAt ? new Date(message.createdAt).getTime() : 0;
+  const updatedAt = message.updatedAt ? new Date(message.updatedAt).getTime() : createdAt;
+
+  return {
+    id: message._id,
+    type: message.role === 'user' ? 'user' : 'ai',
+    content: message.content,
+    pending: false,
+    edited: updatedAt - createdAt > 1000,
+  };
+}
+
+function createClientMessageId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  return `client-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -27,6 +49,7 @@ const Home = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [statusMessage, setStatusMessage] = useState('');
+  const [editingMessageId, setEditingMessageId] = useState(null);
   const socketRef = useRef(null);
   const activeChatIdRef = useRef(activeChatId);
 
@@ -83,14 +106,40 @@ const Home = () => {
         return;
       }
 
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          id: `${messagePayload.chat}-${prevMessages.length}`,
-          type: 'ai',
-          content: messagePayload.content,
-        },
-      ]);
+      setMessages((prevMessages) => {
+        const nextMessages = prevMessages.map((message) => {
+          if (message.clientId !== messagePayload.clientMessageId) {
+            return message;
+          }
+
+          return {
+            ...message,
+            id: messagePayload.userMessageId || message.id,
+            pending: false,
+          };
+        });
+
+        if (!messagePayload.content) {
+          return nextMessages;
+        }
+
+        const responseId = messagePayload.responseMessageId || `ai-${messagePayload.clientMessageId || Date.now()}`;
+
+        if (nextMessages.some((message) => message.id === responseId)) {
+          return nextMessages;
+        }
+
+        return [
+          ...nextMessages,
+          {
+            id: responseId,
+            type: 'ai',
+            content: messagePayload.content,
+            pending: false,
+            edited: false,
+          },
+        ];
+      });
       setStatusMessage('');
       dispatch(sendingFinished());
     });
@@ -118,6 +167,7 @@ const Home = () => {
     async function loadMessages() {
       if (!activeChatId) {
         setMessages([]);
+        setEditingMessageId(null);
         return;
       }
 
@@ -128,11 +178,8 @@ const Home = () => {
           return;
         }
 
-        setMessages(response.data.messages.map((message) => ({
-          id: message._id,
-          type: message.role === 'user' ? 'user' : 'ai',
-          content: message.content,
-        })));
+        setMessages(response.data.messages.map(mapServerMessage));
+        setEditingMessageId(null);
         setStatusMessage('');
       } catch (error) {
         if (!isMounted) {
@@ -170,6 +217,8 @@ const Home = () => {
       const response = await api.post('/api/chat', { title });
       dispatch(startNewChat(response.data.chat));
       setMessages([]);
+      setEditingMessageId(null);
+      dispatch(setInput(''));
       setSidebarOpen(false);
     } catch (error) {
       if (error?.response?.status === 401) {
@@ -178,6 +227,67 @@ const Home = () => {
       }
 
       setStatusMessage(getErrorMessage(error, 'Unable to create a chat right now.'));
+    }
+  };
+
+  const handleRenameChat = async (chat) => {
+    const initialTitle = chat?.title || '';
+    let title = window.prompt('Rename this chat:', initialTitle);
+
+    if (title == null) {
+      return;
+    }
+
+    title = title.trim();
+
+    if (!title || title === initialTitle) {
+      return;
+    }
+
+    try {
+      const response = await api.patch(`/api/chat/${chat._id}`, { title });
+      const updatedChat = response.data.chat;
+      const nextChats = chats.map((item) => (item._id === updatedChat._id ? updatedChat : item));
+      dispatch(setChats(nextChats));
+      setStatusMessage('');
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        navigate('/login');
+        return;
+      }
+
+      setStatusMessage(getErrorMessage(error, 'Unable to rename this chat right now.'));
+    }
+  };
+
+  const handleDeleteChat = async (chat) => {
+    const shouldDelete = window.confirm(`Delete "${chat.title}"? This will remove its messages too.`);
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    try {
+      await api.delete(`/api/chat/${chat._id}`);
+      const nextChats = chats.filter((item) => item._id !== chat._id);
+      dispatch(setChats(nextChats));
+
+      if (activeChatId === chat._id) {
+        const nextActiveChatId = nextChats[0]?._id || null;
+        dispatch(selectChat(nextActiveChatId));
+        setMessages([]);
+        setEditingMessageId(null);
+        dispatch(setInput(''));
+      }
+
+      setStatusMessage('');
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        navigate('/login');
+        return;
+      }
+
+      setStatusMessage(getErrorMessage(error, 'Unable to delete this chat right now.'));
     }
   };
 
@@ -195,13 +305,19 @@ const Home = () => {
 
     dispatch(sendingStarted());
     setStatusMessage('');
+    setEditingMessageId(null);
+
+    const clientMessageId = createClientMessageId();
 
     setMessages((prevMessages) => [
       ...prevMessages,
       {
-        id: `user-${Date.now()}`,
+        id: clientMessageId,
+        clientId: clientMessageId,
         type: 'user',
         content: trimmed,
+        pending: true,
+        edited: false,
       },
     ]);
     dispatch(setInput(''));
@@ -209,7 +325,73 @@ const Home = () => {
     socketRef.current.emit('ai-message', {
       chat: activeChatId,
       content: trimmed,
+      clientMessageId,
     });
+  };
+
+  const handleStartEditing = (message) => {
+    if (!message?.id || message.pending || message.type !== 'user') {
+      return;
+    }
+
+    setEditingMessageId(message.id);
+    dispatch(setInput(message.content));
+    setStatusMessage('Editing this message will replace the later replies in this chat.');
+  };
+
+  const handleCancelEditing = () => {
+    setEditingMessageId(null);
+    dispatch(setInput(''));
+    setStatusMessage('');
+  };
+
+  const handleEditMessage = async () => {
+    const trimmed = input.trim();
+
+    if (!trimmed || !editingMessageId || isSending) {
+      return;
+    }
+
+    dispatch(sendingStarted());
+    setStatusMessage('');
+
+    try {
+      const response = await api.patch(`/api/chat/messages/${editingMessageId}`, {
+        content: trimmed,
+      });
+
+      setMessages(response.data.messages.map(mapServerMessage));
+      setEditingMessageId(null);
+      dispatch(setInput(''));
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        navigate('/login');
+        return;
+      }
+
+      setStatusMessage(getErrorMessage(error, 'Unable to edit that message right now.'));
+    } finally {
+      dispatch(sendingFinished());
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/api/auth/logout');
+    } catch (error) {
+      if (error?.response?.status && error.response.status !== 401) {
+        setStatusMessage(getErrorMessage(error, 'Unable to log out right now.'));
+        return;
+      }
+    }
+
+    socketRef.current?.disconnect();
+    dispatch(resetChatState());
+    setMessages([]);
+    setEditingMessageId(null);
+    setStatusMessage('');
+    setSidebarOpen(false);
+    navigate('/login');
   };
 
   return (
@@ -217,15 +399,22 @@ const Home = () => {
       <ChatMobileBar
         onToggleSidebar={() => setSidebarOpen((open) => !open)}
         onNewChat={handleNewChat}
+        onLogout={handleLogout}
       />
       <ChatSidebar
         chats={chats}
         activeChatId={activeChatId}
         onSelectChat={(id) => {
           dispatch(selectChat(id));
+          setEditingMessageId(null);
+          dispatch(setInput(''));
+          setStatusMessage('');
           setSidebarOpen(false);
         }}
         onNewChat={handleNewChat}
+        onRenameChat={handleRenameChat}
+        onDeleteChat={handleDeleteChat}
+        onLogout={handleLogout}
         open={sidebarOpen}
       />
       <main className="chat-main" role="main">
@@ -244,12 +433,19 @@ const Home = () => {
             </p>
           </div>
         )}
-        <ChatMessages messages={messages} isSending={isSending} />
+        <ChatMessages
+          messages={messages}
+          isSending={isSending}
+          editingMessageId={editingMessageId}
+          onEditMessage={handleStartEditing}
+        />
         {activeChatId && (
           <ChatComposer
             input={input}
             setInput={(value) => dispatch(setInput(value))}
-            onSend={sendMessage}
+            onSend={editingMessageId ? handleEditMessage : sendMessage}
+            isEditing={Boolean(editingMessageId)}
+            onCancelEdit={handleCancelEditing}
             isSending={isSending}
           />
         )}
