@@ -43,6 +43,8 @@
     white-space: pre-wrap;
     word-wrap: break-word;
     font-size: var(--text-sm);
+    position: relative;
+    z-index: 1;
 }
 
 .msg-edited {
@@ -90,10 +92,17 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    width: fit-content;
     margin-top: 8px;
+    position: relative;
+    z-index: 3;
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--transition-fast);
+}
+
+.msg-user .msg-actions {
+    align-self: flex-end;
 }
 
 .msg:hover .msg-actions,
@@ -114,6 +123,9 @@
     cursor: pointer;
     color: #6a6a6a;
     padding: 0;
+    position: relative;
+    z-index: 4;
+    pointer-events: auto;
 }
 
 .msg-actions button:hover {
