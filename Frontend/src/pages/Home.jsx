@@ -18,6 +18,8 @@ import {
 } from '../store/chatSlice.js';
 import { api, getErrorMessage, SOCKET_URL } from '../lib/api.js';
 
+const STATUS_MESSAGE_DURATION_MS = 3200;
+
 function mapServerMessage(message) {
   const createdAt = message.createdAt ? new Date(message.createdAt).getTime() : 0;
   const updatedAt = message.updatedAt ? new Date(message.updatedAt).getTime() : createdAt;
@@ -52,10 +54,25 @@ const Home = () => {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const socketRef = useRef(null);
   const activeChatIdRef = useRef(activeChatId);
+  const isLoggingOutRef = useRef(false);
 
   useEffect(() => {
     activeChatIdRef.current = activeChatId;
   }, [activeChatId]);
+
+  useEffect(() => {
+    if (!statusMessage) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setStatusMessage('');
+    }, STATUS_MESSAGE_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [statusMessage]);
 
   useEffect(() => {
     let isMounted = true;
@@ -80,6 +97,10 @@ const Home = () => {
         }
 
         if (error?.response?.status === 401) {
+          if (isLoggingOutRef.current) {
+            return;
+          }
+
           navigate('/login');
           return;
         }
@@ -145,6 +166,10 @@ const Home = () => {
     });
 
     socket.on('connect_error', (error) => {
+      if (isLoggingOutRef.current) {
+        return;
+      }
+
       if (error?.message?.includes('Authentication')) {
         return;
       }
@@ -187,6 +212,10 @@ const Home = () => {
         }
 
         if (error?.response?.status === 401) {
+          if (isLoggingOutRef.current) {
+            return;
+          }
+
           navigate('/login');
           return;
         }
@@ -376,27 +405,30 @@ const Home = () => {
   };
 
   const handleLogout = async () => {
+    isLoggingOutRef.current = true;
+
     try {
       await api.post('/api/auth/logout');
     } catch (error) {
       if (error?.response?.status && error.response.status !== 401) {
+        isLoggingOutRef.current = false;
         setStatusMessage(getErrorMessage(error, 'Unable to log out right now.'));
         return;
       }
     }
 
+    if (socketRef.current?.io?.opts) {
+      socketRef.current.io.opts.reconnection = false;
+    }
+    socketRef.current?.removeAllListeners();
     socketRef.current?.disconnect();
+    socketRef.current = null;
     dispatch(resetChatState());
     setMessages([]);
     setEditingMessageId(null);
     setStatusMessage('');
     setSidebarOpen(false);
-    navigate('/login', {
-      replace: true,
-      state: {
-        successMessage: 'You have been signed out.'
-      }
-    });
+    navigate('/login?logged_out=1', { replace: true });
   };
 
   return (
