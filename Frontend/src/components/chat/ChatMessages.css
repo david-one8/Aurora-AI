@@ -45,6 +45,15 @@
     font-size: var(--text-sm);
 }
 
+.msg-edited {
+    display: inline-block;
+    margin-left: 10px;
+    color: var(--color-text-muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
 .msg-user .msg-bubble {
     background: linear-gradient(180deg, #1f1f1f, #161616);
     color: #fafafa;
@@ -64,6 +73,11 @@
 .msg-ai.pending .msg-bubble {
     display: inline-flex;
     gap: 6px;
+}
+
+.msg.is-editing .msg-bubble {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
 }
 
 .msg-error .msg-bubble {
@@ -116,6 +130,13 @@
     width: 16px;
     height: 16px;
     stroke-width: 1.75;
+}
+
+@media (max-width:960px) {
+    .msg-actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
 }
 
 /* Subtle fade in for new AI messages */
