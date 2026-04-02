@@ -1,6 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api, getErrorMessage } from '../lib/api.js';
+
+const SESSION_CHECK_ATTEMPTS = 5;
+const SESSION_CHECK_DELAY_MS = 150;
+const TRANSIENT_MESSAGE_DURATION_MS = 3200;
+
+function waitForDelay(durationMs) {
+    return new Promise((resolve) => {
+        window.setTimeout(resolve, durationMs);
+    });
+}
 
 const Login = () => {
     const [ form, setForm ] = useState({ email: '', password: '' });
@@ -8,7 +18,45 @@ const Login = () => {
     const [ errorMessage, setErrorMessage ] = useState('');
     const location = useLocation();
     const navigate = useNavigate();
-    const successMessage = location.state?.successMessage || '';
+    const [ visibleSuccessMessage, setVisibleSuccessMessage ] = useState('');
+    const successMessage = useMemo(() => {
+        if (location.state?.successMessage) {
+            return location.state.successMessage;
+        }
+
+        const params = new URLSearchParams(location.search);
+
+        if (params.get('registered') === '1') {
+            return 'Account created successfully. Please sign in.';
+        }
+
+        if (params.get('logged_out') === '1') {
+            return 'You have been signed out.';
+        }
+
+        return '';
+    }, [ location.search, location.state ]);
+
+    useEffect(() => {
+        if (!successMessage) {
+            setVisibleSuccessMessage('');
+            return undefined;
+        }
+
+        setVisibleSuccessMessage(successMessage);
+
+        const timeoutId = window.setTimeout(() => {
+            setVisibleSuccessMessage('');
+
+            if (location.search || location.state?.successMessage) {
+                navigate(location.pathname, { replace: true, state: null });
+            }
+        }, TRANSIENT_MESSAGE_DURATION_MS);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [ location.pathname, location.search, location.state, navigate, successMessage ]);
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -25,7 +73,25 @@ const Login = () => {
                 email: form.email,
                 password: form.password
             });
-            navigate('/');
+
+            let authenticated = false;
+
+            for (let attempt = 0; attempt < SESSION_CHECK_ATTEMPTS; attempt += 1) {
+                const sessionResponse = await api.get('/api/auth/session');
+
+                if (sessionResponse.data?.authenticated) {
+                    authenticated = true;
+                    break;
+                }
+
+                await waitForDelay(SESSION_CHECK_DELAY_MS);
+            }
+
+            if (!authenticated) {
+                throw new Error('Signed in, but your session was not ready. Please try again.');
+            }
+
+            navigate('/', { replace: true });
         } catch (err) {
             setErrorMessage(getErrorMessage(err, 'Unable to sign in right now.'));
         } finally {
@@ -42,7 +108,7 @@ const Login = () => {
                     <p className="auth-sub">Welcome back. We've missed you.</p>
                 </header>
                 <form className="auth-form" onSubmit={handleSubmit} noValidate>
-                    {successMessage && <p className="form-feedback success" role="status">{successMessage}</p>}
+                    {visibleSuccessMessage && <p className="form-feedback success" role="status">{visibleSuccessMessage}</p>}
                     {errorMessage && <p className="form-feedback error" role="alert">{errorMessage}</p>}
                     <div className="field-group">
                         <label htmlFor="login-email">Email</label>
