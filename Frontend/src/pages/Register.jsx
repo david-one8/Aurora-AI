@@ -27,7 +27,7 @@ const Register = () => {
                 },
                 password: form.password
             });
-            navigate('/login', {
+            navigate('/login?registered=1', {
                 replace: true,
                 state: {
                     successMessage: 'Account created successfully. Please sign in.'
