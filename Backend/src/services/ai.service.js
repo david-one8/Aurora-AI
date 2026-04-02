@@ -1,10 +1,14 @@
 const { GoogleGenAI } = require("@google/genai");
 
-const ai = new GoogleGenAI({});
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY,
+});
+const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-2.5-flash";
+const EMBEDDING_MODEL = "gemini-embedding-001";
 
 async function generateResponse(content) {
   const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: CHAT_MODEL,
     contents: content,
     config: {
       temperature: 0.7,
@@ -70,7 +74,7 @@ async function generateResponse(content) {
 
 async function generateVector(content) {
   const response = await ai.models.embedContent({
-    model: "gemini-embedding-001",
+    model: EMBEDDING_MODEL,
     contents: content,
     config: {
       outputDimensionality: 768,
@@ -80,7 +84,22 @@ async function generateVector(content) {
   return response.embeddings[0].values;
 }
 
+function getAiErrorMessage(error) {
+  const rawMessage = error?.message || "";
+
+  if (rawMessage.includes('"code":429') || rawMessage.includes("RESOURCE_EXHAUSTED")) {
+    return "Aurora AI is out of Gemini generation quota right now. Please check the API key quota or billing and try again.";
+  }
+
+  if (rawMessage.includes('"code":401') || rawMessage.toLowerCase().includes("api key not valid")) {
+    return "Aurora AI could not authenticate with Gemini. Please verify the API key configuration.";
+  }
+
+  return "Aurora AI could not generate a response right now.";
+}
+
 module.exports = {
   generateResponse,
   generateVector,
+  getAiErrorMessage,
 };
