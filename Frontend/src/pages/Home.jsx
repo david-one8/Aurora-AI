@@ -391,7 +391,12 @@ const Home = () => {
     setEditingMessageId(null);
     setStatusMessage('');
     setSidebarOpen(false);
-    navigate('/login');
+    navigate('/login', {
+      replace: true,
+      state: {
+        successMessage: 'You have been signed out.'
+      }
+    });
   };
 
   return (

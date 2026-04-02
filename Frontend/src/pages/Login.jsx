@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api, getErrorMessage } from '../lib/api.js';
 
 const Login = () => {
     const [ form, setForm ] = useState({ email: '', password: '' });
     const [ submitting, setSubmitting ] = useState(false);
     const [ errorMessage, setErrorMessage ] = useState('');
+    const location = useLocation();
     const navigate = useNavigate();
+    const successMessage = location.state?.successMessage || '';
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -40,6 +42,7 @@ const Login = () => {
                     <p className="auth-sub">Welcome back. We've missed you.</p>
                 </header>
                 <form className="auth-form" onSubmit={handleSubmit} noValidate>
+                    {successMessage && <p className="form-feedback success" role="status">{successMessage}</p>}
                     {errorMessage && <p className="form-feedback error" role="alert">{errorMessage}</p>}
                     <div className="field-group">
                         <label htmlFor="login-email">Email</label>

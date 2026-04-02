@@ -252,6 +252,12 @@ button.primary-btn:disabled {
   color: #ff7a7a;
 }
 
+.form-feedback.success {
+  border-color: rgba(120, 220, 160, 0.35);
+  background: rgba(120, 220, 160, 0.08);
+  color: #9ee6b7;
+}
+
 .auth-route-banner {
   position: fixed;
   top: 16px;

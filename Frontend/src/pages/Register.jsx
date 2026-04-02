@@ -27,7 +27,12 @@ const Register = () => {
                 },
                 password: form.password
             });
-            navigate('/');
+            navigate('/login', {
+                replace: true,
+                state: {
+                    successMessage: 'Account created successfully. Please sign in.'
+                }
+            });
         } catch (err) {
             setErrorMessage(getErrorMessage(err, 'Unable to create your account right now.'));
         } finally {
