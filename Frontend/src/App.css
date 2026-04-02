@@ -252,6 +252,22 @@ button.primary-btn:disabled {
   color: #ff7a7a;
 }
 
+.auth-route-banner {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  max-width: min(92vw, 520px);
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 122, 122, 0.3);
+  background: rgba(25, 5, 5, 0.92);
+  color: #ff9f9f;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+}
+
 /* Theme toggle removed since system preference is used */
 
 /* Smooth theme transition */
