@@ -12,6 +12,7 @@ const authRateLimiter = createRateLimitMiddleware({
 
 router.post("/register", authRateLimiter, authControllers.registerUser)
 router.post("/login", authRateLimiter, authControllers.loginUser)
+router.post("/logout", authControllers.logoutUser)
 
 
 

@@ -32,4 +32,16 @@ router.get('/', authMiddleware.authUser, chatReadRateLimiter, chatController.get
 router.get('/messages/:id', authMiddleware.authUser, chatReadRateLimiter, chatController.getMessages)
 
 
+/* PATCH /api/chat/:id */
+router.patch('/:id', authMiddleware.authUser, chatWriteRateLimiter, chatController.updateChat)
+
+
+/* DELETE /api/chat/:id */
+router.delete('/:id', authMiddleware.authUser, chatWriteRateLimiter, chatController.deleteChat)
+
+
+/* PATCH /api/chat/messages/:id */
+router.patch('/messages/:id', authMiddleware.authUser, chatWriteRateLimiter, chatController.editMessage)
+
+
 module.exports = router;
