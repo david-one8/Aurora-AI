@@ -1,11 +1,11 @@
 {
-  "name": "cohort-1-project-chat-gpt",
+  "name": "project-chat-gpt",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx nodemon server.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
