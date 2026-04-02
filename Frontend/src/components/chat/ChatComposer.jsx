@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useLayoutEffect } from 'react';
 import './ChatComposer.css';
 
-const ChatComposer = ({ input, setInput, onSend, isSending }) => {
+const ChatComposer = ({ input, setInput, onSend, isSending, isEditing, onCancelEdit }) => {
   const textareaRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -26,12 +26,20 @@ const ChatComposer = ({ input, setInput, onSend, isSending }) => {
         if (input.trim()) onSend();
       }}
     >
+      {isEditing && (
+        <div className="composer-editing-bar" role="status">
+          <span>Editing a previous message. Later replies will be regenerated from here.</span>
+          <button type="button" className="composer-secondary-btn" onClick={onCancelEdit}>
+            Cancel
+          </button>
+        </div>
+      )}
       <div className="composer-surface" data-state={isSending ? 'sending' : undefined}>
         <div className="composer-field">
           <textarea
             ref={textareaRef}
             className="composer-input"
-            placeholder="Message Aurora AI..."
+            placeholder={isEditing ? 'Edit your message...' : 'Message Aurora AI...'}
             aria-label="Message"
             value={input}
             onChange={(event) => setInput(event.target.value)}
@@ -41,14 +49,14 @@ const ChatComposer = ({ input, setInput, onSend, isSending }) => {
             autoComplete="off"
           />
           <div className="composer-hint" aria-hidden="true">
-            Enter to send. Shift+Enter adds a new line.
+            {isEditing ? 'Enter to save. Shift+Enter adds a new line.' : 'Enter to send. Shift+Enter adds a new line.'}
           </div>
         </div>
         <button
           type="submit"
           className="send-btn icon-btn"
           disabled={!input.trim() || isSending}
-          aria-label={isSending ? 'Sending...' : 'Send message'}
+          aria-label={isSending ? 'Sending...' : isEditing ? 'Save edited message' : 'Send message'}
         >
           <span className="send-icon" aria-hidden="true">
             <svg

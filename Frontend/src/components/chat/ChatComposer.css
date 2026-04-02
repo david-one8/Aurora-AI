@@ -7,9 +7,42 @@
     width: 100%;
     padding: 24px 0 32px; /* vertical breathing room */
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     background: linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,0));
     backdrop-filter: blur(12px);
+}
+
+.composer-editing-bar {
+    width: 100%;
+    max-width: 820px;
+    margin: 0 32px 10px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid #2f2f31;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: #d7d7d8;
+    font-size: 0.85rem;
+}
+
+.composer-secondary-btn {
+    border: 1px solid #3d3d40;
+    background: #111112;
+    color: #f1f1f2;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font: inherit;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.composer-secondary-btn:hover {
+    background: #1a1a1d;
 }
 
 .composer-surface {
@@ -93,11 +126,13 @@
 /* Compact adjustments for very narrow screens */
 @media (max-width:600px) {
     .composer { padding: 16px 0 26px; }
+    .composer-editing-bar { margin: 0 12px 10px; border-radius: 12px; padding: 10px 12px; }
     .composer-surface { margin:0 12px; border-radius:20px; padding:10px 12px 12px 16px; }
     .send-btn.icon-btn { --size:36px; }
 }
 
 @media (max-width:420px) {
+    .composer-editing-bar { flex-direction: column; align-items: stretch; }
     .composer-hint { display:none; }
     .composer-input { padding-bottom:0; }
 }
