@@ -15,6 +15,18 @@ function parseAllowedOrigins(value) {
         .filter(Boolean);
 }
 
+function isAllowedOrigin(origin, allowedOrigins) {
+    if (!origin) {
+        return true;
+    }
+
+    if (allowedOrigins.includes(origin)) {
+        return true;
+    }
+
+    return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
+}
+
 function initSocketServer(httpServer) {
     const allowedOrigins = [
         ...parseAllowedOrigins(process.env.FRONTEND_URL),
@@ -27,7 +39,7 @@ function initSocketServer(httpServer) {
     const io = new Server(httpServer, {
         cors: {
             origin(origin, callback) {
-                if (!origin || allowedOrigins.includes(origin)) {
+                if (isAllowedOrigin(origin, allowedOrigins)) {
                     callback(null, true);
                     return;
                 }

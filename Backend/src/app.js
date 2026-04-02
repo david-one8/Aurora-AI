@@ -14,6 +14,18 @@ function parseAllowedOrigins(value) {
         .filter(Boolean);
 }
 
+function isAllowedOrigin(origin, allowedOrigins) {
+    if (!origin) {
+        return true;
+    }
+
+    if (allowedOrigins.includes(origin)) {
+        return true;
+    }
+
+    return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
+}
+
 const app = express();
 const builtFrontendDir = path.resolve(__dirname, '../../Frontend/dist');
 const legacyPublicDir = path.resolve(__dirname, '../public');
@@ -28,7 +40,7 @@ const allowedOrigins = [
 
 const corsOptions = {
     origin(origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (isAllowedOrigin(origin, allowedOrigins)) {
             callback(null, true);
             return;
         }
