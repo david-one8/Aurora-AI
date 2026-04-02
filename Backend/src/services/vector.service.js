@@ -55,4 +55,12 @@ async function queryMemory({ queryVector, limit = 5, metadata }) {
 
 }
 
-module.exports = { createMemory, queryMemory }
+async function deleteMemories(messageIds = []) {
+    if (!messageIds.length) {
+        return;
+    }
+
+    await cohortChatGptIndex.deleteMany(messageIds.map(String));
+}
+
+module.exports = { createMemory, queryMemory, deleteMemories }
