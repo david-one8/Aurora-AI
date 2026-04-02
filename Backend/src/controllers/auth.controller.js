@@ -12,6 +12,21 @@ function getAuthCookieOptions() {
     };
 }
 
+async function getUserFromRequestToken(req) {
+    const { token } = req.cookies || {};
+
+    if (!token) {
+        return null;
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        return await userModel.findById(decoded.id);
+    } catch {
+        return null;
+    }
+}
+
 async function registerUser(req, res) {
     try {
         const { fullName, email, password } = req.body;
@@ -36,9 +51,6 @@ async function registerUser(req, res) {
             email,
             password: hashedPassword
         });
-
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-        res.cookie('token', token, getAuthCookieOptions());
 
         return res.status(201).json({
             message: 'User registered successfully',
@@ -94,13 +106,21 @@ function logoutUser(req, res) {
     return res.status(200).json({ message: 'User logged out successfully' });
 }
 
-function getSession(req, res) {
+async function getSession(req, res) {
+    const user = await getUserFromRequestToken(req);
+
+    if (!user) {
+        return res.status(200).json({
+            authenticated: false
+        });
+    }
+
     return res.status(200).json({
         authenticated: true,
         user: {
-            email: req.user.email,
-            _id: req.user._id,
-            fullName: req.user.fullName
+            email: user.email,
+            _id: user._id,
+            fullName: user.fullName
         }
     });
 }
