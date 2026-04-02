@@ -1,5 +1,6 @@
 const express = require('express');
 const authControllers = require("../controllers/auth.controller")
+const authMiddleware = require('../middlewares/auth.middleware');
 const { createRateLimitMiddleware } = require('../middlewares/rate-limit.middleware');
 const router = express.Router();
 
@@ -13,6 +14,7 @@ const authRateLimiter = createRateLimitMiddleware({
 router.post("/register", authRateLimiter, authControllers.registerUser)
 router.post("/login", authRateLimiter, authControllers.loginUser)
 router.post("/logout", authControllers.logoutUser)
+router.get("/session", authMiddleware.authUser, authControllers.getSession)
 
 
 

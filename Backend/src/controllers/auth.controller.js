@@ -94,8 +94,20 @@ function logoutUser(req, res) {
     return res.status(200).json({ message: 'User logged out successfully' });
 }
 
+function getSession(req, res) {
+    return res.status(200).json({
+        authenticated: true,
+        user: {
+            email: req.user.email,
+            _id: req.user._id,
+            fullName: req.user.fullName
+        }
+    });
+}
+
 module.exports = {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    getSession
 };
