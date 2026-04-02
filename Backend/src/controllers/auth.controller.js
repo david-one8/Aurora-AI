@@ -44,7 +44,7 @@ async function registerUser(req, res) {
                 fullName: user.fullName
             }
         });
-    } catch (error) {
+    } catch {
         return res.status(500).json({ message: 'Unable to register user right now' });
     }
 }
@@ -80,12 +80,18 @@ async function loginUser(req, res) {
                 fullName: user.fullName
             }
         });
-    } catch (error) {
+    } catch {
         return res.status(500).json({ message: 'Unable to log in right now' });
     }
 }
 
+function logoutUser(req, res) {
+    res.clearCookie('token', authCookieOptions);
+    return res.status(200).json({ message: 'User logged out successfully' });
+}
+
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    logoutUser
 };
