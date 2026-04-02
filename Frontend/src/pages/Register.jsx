@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api, getErrorMessage } from '../lib/api.js';
 
 const Register = () => {
     const [ form, setForm ] = useState({ email: '', firstname: '', lastname: '', password: '' });
     const [ submitting, setSubmitting ] = useState(false);
+    const [ errorMessage, setErrorMessage ] = useState('');
     const navigate = useNavigate();
-
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -16,43 +16,35 @@ const Register = () => {
     async function handleSubmit(e) {
         e.preventDefault();
         setSubmitting(true);
-        console.log(form);
-
-        axios.post("https://aurora-ai-ka4t.onrender.com/api/auth/register", {
-            email: form.email,
-            fullName: {
-                firstName: form.firstname,
-                lastName: form.lastname
-            },
-            password: form.password
-        }, {
-            withCredentials: true
-        }).then((res) => {
-            console.log(res);
-            navigate("/");
-        }).catch((err) => {
-            console.error(err);
-            alert('Registration failed (placeholder)');
-        })
+        setErrorMessage('');
 
         try {
-            // Placeholder: integrate real registration logic / API call.
-
+            await api.post('/api/auth/register', {
+                email: form.email,
+                fullName: {
+                    firstName: form.firstname,
+                    lastName: form.lastname
+                },
+                password: form.password
+            });
+            navigate('/');
         } catch (err) {
-            console.error(err);
+            setErrorMessage(getErrorMessage(err, 'Unable to create your account right now.'));
         } finally {
             setSubmitting(false);
         }
     }
 
     return (
-        <div className="center-min-h-screen">
+        <div className="auth-shell">
             <div className="auth-card" role="main" aria-labelledby="register-heading">
                 <header className="auth-header">
+                    <div className="auth-chip">Aurora AI</div>
                     <h1 id="register-heading">Create account</h1>
                     <p className="auth-sub">Join us and start exploring.</p>
                 </header>
                 <form className="auth-form" onSubmit={handleSubmit} noValidate>
+                    {errorMessage && <p className="form-feedback error" role="alert">{errorMessage}</p>}
                     <div className="field-group">
                         <label htmlFor="email">Email</label>
                         <input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" value={form.email} onChange={handleChange} required />

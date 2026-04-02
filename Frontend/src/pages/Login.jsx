@@ -1,59 +1,53 @@
 import React, { useState } from 'react';
-import { Link,useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
+import { Link, useNavigate } from 'react-router-dom';
+import { api, getErrorMessage } from '../lib/api.js';
 
 const Login = () => {
     const [ form, setForm ] = useState({ email: '', password: '' });
     const [ submitting, setSubmitting ] = useState(false);
+    const [ errorMessage, setErrorMessage ] = useState('');
     const navigate = useNavigate();
-    
 
     function handleChange(e) {
         const { name, value } = e.target;
-        setForm({ ...form, [name]: value });
+        setForm({ ...form, [ name ]: value });
     }
 
     async function handleSubmit(e) {
         e.preventDefault();
         setSubmitting(true);
+        setErrorMessage('');
 
-
-        console.log(form);
-
-        axios.post("https://aurora-ai-ka4t.onrender.com/api/auth/login", {
-            email: form.email,
-            password: form.password
-        },
-            {
-                withCredentials: true
-            }
-        ).then((res) => {
-            console.log(res);
-            navigate("/");
-        }).catch((err) => {
-            console.error(err);
-        }).finally(() => {
+        try {
+            await api.post('/api/auth/login', {
+                email: form.email,
+                password: form.password
+            });
+            navigate('/');
+        } catch (err) {
+            setErrorMessage(getErrorMessage(err, 'Unable to sign in right now.'));
+        } finally {
             setSubmitting(false);
-        });
-
+        }
     }
 
     return (
-        <div className="center-min-h-screen">
+        <div className="auth-shell">
             <div className="auth-card" role="main" aria-labelledby="login-heading">
                 <header className="auth-header">
+                    <div className="auth-chip">Aurora AI</div>
                     <h1 id="login-heading">Sign in</h1>
                     <p className="auth-sub">Welcome back. We've missed you.</p>
                 </header>
                 <form className="auth-form" onSubmit={handleSubmit} noValidate>
+                    {errorMessage && <p className="form-feedback error" role="alert">{errorMessage}</p>}
                     <div className="field-group">
                         <label htmlFor="login-email">Email</label>
-                        <input id="login-email" name="email" type="email" autoComplete="email" placeholder="you@example.com"  onChange={handleChange} required />
+                        <input id="login-email" name="email" type="email" autoComplete="email" placeholder="you@example.com" onChange={handleChange} required />
                     </div>
                     <div className="field-group">
                         <label htmlFor="login-password">Password</label>
-                        <input id="login-password" name="password" type="password" autoComplete="current-password" placeholder="Your password"  onChange={handleChange} required />
+                        <input id="login-password" name="password" type="password" autoComplete="current-password" placeholder="Your password" onChange={handleChange} required />
                     </div>
                     <button type="submit" className="primary-btn" disabled={submitting}>
                         {submitting ? 'Signing in...' : 'Sign in'}
